@@ -40,10 +40,10 @@ git fetch --all
 default_branch=$(git remote show origin | awk '/HEAD branch/ {print $NF}'); 
 
 # get hash of last commit on default branch
-last_commit_default_branch=$(git log -1 remotes/origin/$default_branch | grep commit | sed 's/commit //g')
+last_commit_default_branch=$(git log -1 remotes/origin/$default_branch --pretty=format:'%H')
 
 #get hash of last commit on current branch
-last_commit_branch=$(git log -1 | grep commit | sed 's/commit //g')
+last_commit_branch=$(git log -1 --pretty=format:'%H')
 
 echo "default branch: $default_branch, HEAD of default branch: $last_commit_default_branch, HEAD of current branch: $last_commit_branch"
 
