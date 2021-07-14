@@ -91,19 +91,16 @@ function find_and_generate() {
     done
 }
 
-## main
-# retrive configured style_path
+#################
+#      main     #
+#################
 style_path=$1
 if [ "$style_path" != "" ]; then
     echo "style_path: $style_path"
 fi
 
-# move to the actual git repo
 cd /github/workspace/
 
-# local corequotepath=$( git config core.quotepath )
 git config core.quotepath off
 
 find_and_generate
-
-# git config core.quotepath $corequotepath
