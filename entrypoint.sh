@@ -77,7 +77,6 @@ function generate_png () {
 }
 
 function find_and_generate() {
-    local default_branch
     local changed_files
     changed_files=$(git diff origin/HEAD --name-only | grep -E "\.puml\"?$")
     echo -e "List of changed files:\n$changed_files"
