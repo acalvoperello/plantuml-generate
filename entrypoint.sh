@@ -77,8 +77,11 @@ function generate_png () {
 }
 
 function find_and_generate() {
+    local default_branch
     local changed_files
-    changed_files=$(git diff origin/HEAD --name-only | grep -E "\.puml\"?$")
+    default_branch=$(git remote show origin | awk '/HEAD branch/ {print $NF}');
+    git pull origin "$default_branch"
+    changed_files=$(git diff .."$default_branch" --name-only | grep -E "\.puml\"?$")
     echo -e "List of changed files:\n$changed_files"
     for file in $changed_files
     do
@@ -95,9 +98,6 @@ fi
 
 # move to the actual git repo
 cd /github/workspace/
-
-# update local repository
-git pull origin
 
 # local corequotepath=$( git config core.quotepath )
 git config core.quotepath off
