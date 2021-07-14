@@ -77,6 +77,7 @@ function generate_png () {
 }
 
 function find_and_generate() {
+    git diff --stat HEAD --name-only | grep -E "\.puml\"?$"
     for file in $(git diff --stat HEAD --name-only | grep -E "\.puml\"?$")
     do
         generate_png "$file"
@@ -86,7 +87,9 @@ function find_and_generate() {
 ## main
 # retrive configured style_path
 style_path=$1
-echo "style_path: $style_path"
+if [ "$style_path" != "" ]; then
+    echo "style_path: $style_path"
+fi
 
 # move to the actual git repo
 cd /github/workspace/
