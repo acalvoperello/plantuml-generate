@@ -1,64 +1,87 @@
 #!/bin/bash
 set -e # stops the execution if a command or pipeline has an error
 
-style_path=$1
+function get_path_from_file() {
+    local output=$(dirname "$1")
+    echo "$output"
+}
+
+function get_filename_from_file() {
+    local output=$(basename "$1")
+    echo "$output"
+}
+
+function get_file_with_new_extension() {
+    local file="$1"
+    local extension="$2"
+    local path=$( get_path_from_file "$file" )
+    local filename="$( get_filename_from_file "$file" )" | cut -d "." -f 1
+    local output=$path"/"$filename"."$extension
+    echo "$output"
+}
+
+function stage_file() {
+    local file=$1
+    git add "$file"
+}
+
+function get_style() {
+    local style_path="$1"
+    echo "!include $style_path"
+}
 
 function generate_png () {
+    local file=$1
+    local path=$( get_path_from_file "$file" )
+    local filename=$( get_filename_from_file "$file" )
+
+    echo "Generating new diagram image for file : $filename"
+
     # Copy all png files from the .puml file directory to the current directory
     # NOTE: `cp` fails if the path does not exists so we redirect stderr to /dev/null 
     #        and ignore the return code with the nop (:), otherwise the whole script fails due to the -e flag set above
-    cp -f ${path}/*png ./ 2>/dev/null || :
+    cp -f "$path"/*png ./ 2>/dev/null || :
 
     # Generated paths for image and temp file
-    png_file="$path/${filename%.*}.png"
-    tmp_file="$path/${filename%.*}.tmp"
-    
+    png_file=$( get_file_with_new_extension "$file" "png" )
+    tmp_file=$( get_file_with_new_extension "$file" "tmp" )
 
-    head -n 1 ${file} > ${tmp_file}
+    # Add styling to puml tmp file
+    head -n 1 "$file" > "$tmp_file"
     if [ "$style_path" != "" ]; then
-        # Add styling to puml tmp file
-        echo '!include $style_path' >> ${tmp_file}
+        get_style "$style_path" >> "$tmp_file"
     fi
-    sed 1d ${file} >> ${tmp_file}
+    sed 1d "$file" >> "$tmp_file"
 
-    # generate the png file from temporary generated file
-    cat "${tmp_file}" | java -DPLANTUML_LIMIT_SIZE=100000000 -jar /opt/plantuml.jar -pipe > "${png_file}"
+    # Generate the png file from temporary generated file
+    cat "$tmp_file" | java -DPLANTUML_LIMIT_SIZE=100000000 -jar lib/plantuml.jar -pipe > "$png_file"
 
-    # remove all png files that were copied before the diagram generation
+    # Remove all png files that were copied before the diagram generation
     rm -f ./*png
-    # remove tmp file
-    rm -f ${tmp_file}
+    # Remove tmp file
+    rm -f "$tmp_file"
+
+    stage_file "$png_file"
 }
+
+function find_and_generate() {
+    for file in $(git diff --stat HEAD --name-only | grep -E "\.puml\"?$")
+    do
+        generate_png "$file"
+    done
+}
+
+## main
+# retrive configured style_path
+style_path=$1
+echo "style_path: $style_path"
 
 # move to the actual git repo
 cd /github/workspace/
 
-# fetch remote branchs to further validate the commit has
-git fetch --all
+# local corequotepath=$( git config core.quotepath )
+git config core.quotepath off
 
-# discover default branch
-default_branch=$(git remote show origin | awk '/HEAD branch/ {print $NF}'); 
+find_and_generate
 
-# get hash of last commit on default branch
-last_commit_default_branch=$(git log -1 remotes/origin/$default_branch --pretty=format:'%H')
-
-#get hash of last commit on current branch
-last_commit_branch=$(git log -1 --pretty=format:'%H')
-
-echo "default branch: $default_branch, HEAD of default branch: $last_commit_default_branch, HEAD of current branch: $last_commit_branch"
-
-# Get list of directories that have changes
-for dir in $(git diff --dirstat $last_commit_default_branch $last_commit_branch | cut -d '%' -f 2)
-do
-    echo "Changes detected on folder ${dir}:"
-    # get only files that end with .puml"
-    for file in $(find ${dir} | grep -E "\.puml\"?$")
-    do
-        # separate file and path
-        path=$(dirname "${file}")
-        filename=$(basename "${file}")
-
-        echo "- Generating new diagram image for file : ${filename}"
-        generate_png
-    done
-done
+# git config core.quotepath $corequotepath
