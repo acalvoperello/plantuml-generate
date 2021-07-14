@@ -27,12 +27,6 @@ function get_file_with_new_extension() {
     echo "$output"
 }
 
-function stage_file() {
-    local file
-    file=$1
-    git add "$file"
-}
-
 function get_style() {
     local style_path
     style_path="$1"
@@ -72,8 +66,6 @@ function generate_png () {
     rm -f ./*png
     # Remove tmp file
     rm -f "$tmp_file"
-
-    stage_file "$png_file"
 }
 
 function find_and_generate() {
