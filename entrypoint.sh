@@ -66,7 +66,7 @@ function generate_png () {
     sed 1d "$file" >> "$tmp_file"
 
     # Generate the png file from temporary generated file
-    cat "$tmp_file" | java -DPLANTUML_LIMIT_SIZE=100000000 -jar lib/plantuml.jar -pipe > "$png_file"
+    cat "$tmp_file" | java -DPLANTUML_LIMIT_SIZE=100000000 -jar /opt/plantuml.jar -pipe > "$png_file"
 
     # Remove all png files that were copied before the diagram generation
     rm -f ./*png
@@ -89,6 +89,7 @@ function find_and_generate() {
     #get hash of last commit on current branch
     last_commit_branch=$(git log -1 --pretty=format:'%H')
     echo "default branch: $default_branch, HEAD of default branch: $last_commit_default_branch, HEAD of current branch: $last_commit_branch"
+   
     # get changed plant UML files
     changed_files=$(git diff --dirstat "$last_commit_default_branch" "$last_commit_branch" --name-only | grep -E "\.puml\"?$")
     echo -e "List of changed files:\n$changed_files"
