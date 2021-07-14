@@ -96,6 +96,9 @@ fi
 # move to the actual git repo
 cd /github/workspace/
 
+# fetch remote branchs
+git fetch --all
+
 # local corequotepath=$( git config core.quotepath )
 git config core.quotepath off
 
