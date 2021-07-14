@@ -2,38 +2,50 @@
 set -e # stops the execution if a command or pipeline has an error
 
 function get_path_from_file() {
-    local output=$(dirname "$1")
+    local output
+    output=$(dirname "$1")
     echo "$output"
 }
 
 function get_filename_from_file() {
-    local output=$(basename "$1")
+    local output
+    output=$(basename "$1")
     echo "$output"
 }
 
 function get_file_with_new_extension() {
-    local file="$1"
-    local extension="$2"
-    local path=$( get_path_from_file "$file" )
-    local filename="$( get_filename_from_file "$file" )" | cut -d "." -f 1
-    local output=$path"/"$filename"."$extension
+    local file
+    local extension
+    local path
+    local filename
+    local output
+    file="$1"
+    extension="$2"
+    path=$( get_path_from_file "$file" )
+    filename="$( get_filename_from_file "$file" | cut -d "." -f 1)" 
+    output="$path/$filename.$extension"
     echo "$output"
 }
 
 function stage_file() {
-    local file=$1
+    local file
+    file=$1
     git add "$file"
 }
 
 function get_style() {
-    local style_path="$1"
+    local style_path
+    style_path="$1"
     echo "!include $style_path"
 }
 
 function generate_png () {
-    local file=$1
-    local path=$( get_path_from_file "$file" )
-    local filename=$( get_filename_from_file "$file" )
+    local file
+    local path
+    local filename
+    file=$1
+    path=$( get_path_from_file "$file" )
+    filename=$( get_filename_from_file "$file" )
 
     echo "Generating new diagram image for file : $filename"
 
