@@ -77,8 +77,12 @@ function generate_png () {
 }
 
 function find_and_generate() {
-    git diff --stat HEAD --name-only | grep -E "\.puml\"?$"
-    for file in $(git diff --stat HEAD --name-only | grep -E "\.puml\"?$")
+    local default_branch
+    local changed_files
+    default_branch=$(git remote show origin | awk '/HEAD branch/ {print $NF}');
+    changed_files=$(git diff ..$default_branch --name-only | grep -E "\.puml\"?$")
+    echo -e "List of changed files:\n$changed_files"
+    for file in $changed_files
     do
         generate_png "$file"
     done
