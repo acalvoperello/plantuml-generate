@@ -83,12 +83,17 @@ function find_and_generate() {
     echo "default branch: $default_branch, HEAD of default branch: $last_commit_default_branch, HEAD of current branch: $last_commit_branch"
    
     # get changed plant UML files
-    changed_files=$(git diff --dirstat "$last_commit_default_branch" "$last_commit_branch" --name-only | grep -E "\.puml\"?$")
-    echo -e "List of changed files:\n$changed_files"
-    for file in $changed_files
-    do
-        generate_png "$file"
-    done
+    changed_files=$((git diff --dirstat "$last_commit_default_branch" "$last_commit_branch" --name-only | grep -E "\.puml\"?$") || echo "")
+    if [ ! -z "$changed_files" ]
+    then
+        echo -e "List of changed files:\n$changed_files"
+        for file in $changed_files
+        do
+            generate_png "$file"
+        done
+    else
+        echo "We haven't found any PlantUML files modified. Skipping generate step"
+    fi
 }
 
 #################
